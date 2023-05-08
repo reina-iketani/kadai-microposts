@@ -49,7 +49,8 @@ class User extends Authenticatable
     
     public function loadRelationshipCounts()
     {
-        $this->loadCount('microposts');
+        
+        $this->loadCount(['microposts', 'followings', 'followers', 'favoritings']);
     }
     
     /**
@@ -118,7 +119,7 @@ class User extends Authenticatable
     }
     
     /**
-     * このユーザとフォロー中ユーザの投稿に絞り込む。
+     * このユーザとフォローの投稿に絞り込む。
      */
     public function feed_microposts()
     {
@@ -129,6 +130,71 @@ class User extends Authenticatable
         // それらのユーザが所有する投稿に絞り込む
         return Micropost::whereIn('user_id', $userIds);
     }
+    
+    
+        
+    
+    
+    
+    /**
+     * このユーザがお気に入りした投稿。（Userモデルとの関係を定義）
+     */
+    public function favoritings()
+    {
+        return $this->belongsToMany(Micropost::class, 'favorites', 'fav_user_id', 'fav_post_id')->withTimestamps();
+    }
+    
+    /**
+     * $postIDで指定された投稿をお気に入りする。
+     *
+     */
+    public function favorite($postId)
+    {
+        $exist = $this->is_favoriting($postId);
+        if ($exist) {
+            return false;
+        } else {
+            $this->favoritings()->attach($postId);
+            return true;
+        }
+    }
+    
+    /**
+     * $postIdで指定された投稿をお気に入り解除する。
+     * 
+     * @param  int $usereId
+     * @return bool
+     */
+    public function unfavorite($postId)
+    {
+        $exist = $this->is_favoriting($postId);
+        
+        if ($exist) {
+            $this->favoritings()->detach($postId);
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    /**
+     * 指定された$postIdの投稿をこのユーザがお気に入り中であるか調べる。お気に入り中ならtrueを返す。
+     * 
+     */
+    public function is_favoriting($postId)
+    {
+        return $this->favoritings()->where('fav_post_id',$postId)->exists();
+    }
+    
+    public function fav_microposts()
+    {
+        // このユーザがお気に入り中の投稿のidを取得して配列にする
+        $postIds = $this->favoritings()->pluck('favorites.id')->toArray();
+        
+        // それらのユーザが所有する投稿に絞り込む
+        return Micropost::whereIn('fav_post_id', $postIds);
+    }
+    
 
 }
 

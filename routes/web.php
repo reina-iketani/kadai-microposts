@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\MicropostsController;
 use App\Http\Controllers\UserFollowController; 
+use App\Http\Controllers\FavoriteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,7 +26,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-     Route::resource('microposts', MicropostsController::class, ['only' => ['store', 'destroy']]);
+     
 
 });
 
@@ -37,6 +38,18 @@ Route::group(['middleware' => ['auth']], function () {
         Route::delete('unfollow', [UserFollowController::class, 'destroy'])->name('user.unfollow'); // 追記
         Route::get('followings', [UsersController::class, 'followings'])->name('users.followings'); // 追記
         Route::get('followers', [UsersController::class, 'followers'])->name('users.followers');    // 追記
+        Route::get('favoritings', [UsersController::class, 'favoritings'])->name('favorite.favoritings');
     });                                                                                             // 追記
-    Route::resource('users', UsersController::class, ['only' => ['index', 'show']]);     
+    Route::resource('users', UsersController::class, ['only' => ['index', 'show']]);
+    Route::resource('microposts', MicropostsController::class, ['only' => ['store', 'destroy']]);
+    
+    Route::group(['prefix' => 'microposts/{id}'], function () {                                             // 追加
+        Route::post('favorite', [FavoriteController::class, 'store'])->name('favorite.favorite');        // 追加
+        Route::delete('unfavorite', [FavoriteController::class, 'destroy'])->name('favorite.unfavorite'); // 追加
+        Route::get('favoriteposts', [MicropostsController::class, 'favoriteposts'])->name('favorite.favoriteposts');
+        
+    });                                                                                                     // 追加
+    
 });
+
+

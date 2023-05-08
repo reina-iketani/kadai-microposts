@@ -19,6 +19,7 @@
                             {{-- 投稿内容 --}}
                             <p class="mb-0">{!! nl2br(e($micropost->content)) !!}</p>
                         </div>
+                        @include('favorite.favorite_button')
                         <div>
                             @if (Auth::id() == $micropost->user_id)
                                 {{-- 投稿削除ボタンのフォーム --}}
@@ -36,5 +37,7 @@
         </ul>
         {{-- ページネーションのリンク --}}
         {{ $microposts->links() }}
+    
     @endif
+    
 </div>
